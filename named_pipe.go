@@ -1,26 +1,23 @@
 package main
 
 import (
+	"net"
 	"os"
 	"time"
 
-	"golang.org/x/sys/windows"
+	"github.com/Microsoft/go-winio"
 )
 
-func dialPipe(p string, poll bool) (*overlappedFile, error) {
-	p16, err := windows.UTF16FromString(p)
-	if err != nil {
-		return nil, err
-	}
+func dialPipe(p string, poll bool) (net.Conn, error) {
 	for {
-		h, err := windows.CreateFile(&p16[0], windows.GENERIC_READ|windows.GENERIC_WRITE, 0, nil, windows.OPEN_EXISTING, windows.FILE_FLAG_OVERLAPPED, 0)
+		conn, err := winio.DialPipe(p, nil)
 		if err == nil {
-			return newOverlappedFile(h), nil
-		}
-		if poll && (os.IsNotExist(err) || err == windows.ERROR_PIPE_BUSY) {
+			return conn, nil
+		} else if poll && os.IsNotExist(err) {
 			time.Sleep(pollTimeout)
 			continue
 		}
-		return nil, &os.PathError{Path: p, Op: "open", Err: err}
+
+		return nil, err
 	}
 }

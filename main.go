@@ -4,6 +4,7 @@ import (
 	"flag"
 	"io"
 	"log"
+	"net"
 	"os"
 	"sync"
 	"time"
@@ -30,6 +31,10 @@ func underlyingError(err error) error {
 	return err
 }
 
+type closeWriter interface {
+	CloseWrite() error
+}
+
 func main() {
 	flag.Parse()
 	args := flag.Args()
@@ -42,7 +47,7 @@ func main() {
 		log.Println("connecting to", args[0])
 	}
 
-	var conn io.ReadWriteCloser
+	var conn net.Conn
 	var err error
 
 	if !*assuan {
@@ -75,9 +80,15 @@ func main() {
 		}
 
 		if *closeWrite {
-			// A zero-byte write on a message pipe indicates that no more data
-			// is coming.
-			conn.Write(nil)
+			cw, ok := conn.(closeWriter)
+			if ok {
+				err = cw.CloseWrite()
+				if err != nil {
+					if *verbose {
+						log.Println("Failed to close pipe:", err)
+					}
+				}
+			}
 		}
 		os.Stdin.Close()
 		wg.Done()
