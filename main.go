@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"io"
 	"log"
 	"net"
@@ -9,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	flag "github.com/spf13/pflag"
 	"golang.org/x/sys/windows"
 )
 
@@ -16,12 +16,12 @@ import (
 const pollTimeout = 200 * time.Millisecond
 
 var (
-	poll            = flag.Bool("p", false, "poll until the the named pipe exists")
-	closeWrite      = flag.Bool("s", false, "send a 0-byte message to the pipe after EOF on stdin")
-	closeOnEOF      = flag.Bool("ep", false, "terminate on EOF reading from the pipe, even if there is more data to write")
-	closeOnStdinEOF = flag.Bool("ei", false, "terminate on EOF reading from stdin, even if there is more data to write")
-	verbose         = flag.Bool("v", false, "verbose output on stderr")
-	assuan          = flag.Bool("a", false, "treat the target as a libassuan file socket (Used by GnuPG)")
+	poll            = flag.BoolP("poll", "p", false, "poll until the the specified thing exists")
+	closeWrite      = flag.BoolP("close-pipe", "s", false, "close the write channel after stdin closes")
+	closeOnEOF      = flag.Bool("pipe-closes", false, "terminate when pipe closes, regardless of stdin state")
+	closeOnStdinEOF = flag.Bool("input-closes", false, "terminate on stdin closes, regardless of pipe state")
+	verbose         = flag.BoolP("verbose", "v", false, "verbose output on stderr")
+	assuan          = flag.Bool("gpg", false, "treat the target as a libassuan file socket (Used by GnuPG)")
 )
 
 func underlyingError(err error) error {
@@ -37,24 +37,29 @@ type closeWriter interface {
 
 func main() {
 	flag.Parse()
+
 	args := flag.Args()
 	if len(args) != 1 {
 		flag.Usage()
 		os.Exit(1)
 	}
 
-	if *verbose {
-		log.Println("connecting to", args[0])
-	}
-
 	var conn net.Conn
 	var err error
 
 	if !*assuan {
+		if *verbose {
+			log.Println("Creating a pipe to", args[0])
+		}
 		conn, err = dialPipe(args[0], *poll)
 	} else {
+		if *verbose {
+			log.Println("Opening an Assuan connection via", args[0])
+		}
+
 		conn, err = dialAssuan(args[0], *poll)
 	}
+
 	if err != nil {
 		log.Fatalln(err)
 	}
