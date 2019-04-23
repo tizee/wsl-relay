@@ -1,3 +1,3 @@
 #!/bin/sh
 
-exec socat UNIX-LISTEN:/home/<your-username>/.gnupg/S.gpg-agent,fork, EXEC:'npiperelay.exe --input-closes --pipe-closes --gpg',nofork
+exec socat UNIX-LISTEN:/home/<your-username>/.gnupg/S.gpg-agent,fork, EXEC:'wsl-relay.exe --input-closes --pipe-closes --gpg',nofork
