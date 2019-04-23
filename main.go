@@ -42,7 +42,7 @@ func main() {
 		log.Println("connecting to", args[0])
 	}
 
-	var conn *overlappedFile
+	var conn io.ReadWriteCloser
 	var err error
 
 	if !*assuan {
