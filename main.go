@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -37,6 +38,8 @@ type closeWriter interface {
 }
 
 func main() {
+	flag.Lookup("gpg").NoOptDefVal = "S.gpg-agent"
+
 	flag.Parse()
 
 	var conn net.Conn
@@ -48,11 +51,26 @@ func main() {
 		}
 		conn, err = dialPipe(*namedPipe, *poll)
 	} else if *gpgFile != "" {
-		if *verbose {
-			log.Println("Opening an Assuan connection via", *gpgFile)
+		fileName := *gpgFile
+		if !filepath.IsAbs(fileName) {
+			appdata, ok := os.LookupEnv("APPDATA")
+			if !ok {
+				log.Fatal("Missing the %APPDATA% variable?")
+			}
+			gpgDir := filepath.Join(appdata, "gnupg")
+			_, err := os.Stat(gpgDir)
+			if os.IsNotExist(err) {
+				log.Fatalf("The directory %q doesn't exist, please specify your full GPG path", gpgDir)
+			}
+
+			fileName = filepath.Join(gpgDir, fileName)
 		}
 
-		conn, err = dialAssuan(*gpgFile, *poll)
+		if *verbose {
+			log.Println("Opening an Assuan connection via", fileName)
+		}
+
+		conn, err = dialAssuan(fileName, *poll)
 	} else {
 		log.Fatalln("No action specified!")
 		flag.Usage()
