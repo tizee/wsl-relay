@@ -2,4 +2,4 @@
 
 pipe="$1"
 link="$2"
-exec socat PTY,link="$link" SYSTEM:"while npiperelay.exe --poll --input-closes $pipe; do true; done"
+exec socat PTY,link="$link" SYSTEM:"while npiperelay.exe --poll --input-closes --pipe $pipe; do true; done"

@@ -21,7 +21,8 @@ var (
 	closeOnEOF      = flag.Bool("pipe-closes", false, "terminate when pipe closes, regardless of stdin state")
 	closeOnStdinEOF = flag.Bool("input-closes", false, "terminate on stdin closes, regardless of pipe state")
 	verbose         = flag.BoolP("verbose", "v", false, "verbose output on stderr")
-	assuan          = flag.Bool("gpg", false, "treat the target as a libassuan file socket (Used by GnuPG)")
+	namedPipe       = flag.String("pipe", "", "The name of the pipe you wish to connect to")
+	gpgFile         = flag.String("gpg", "", "To location of your windows GPG agent socket")
 )
 
 func underlyingError(err error) error {
@@ -38,26 +39,24 @@ type closeWriter interface {
 func main() {
 	flag.Parse()
 
-	args := flag.Args()
-	if len(args) != 1 {
-		flag.Usage()
-		os.Exit(1)
-	}
-
 	var conn net.Conn
 	var err error
 
-	if !*assuan {
+	if *namedPipe != "" {
 		if *verbose {
-			log.Println("Creating a pipe to", args[0])
+			log.Println("Creating a pipe to", *namedPipe)
 		}
-		conn, err = dialPipe(args[0], *poll)
-	} else {
+		conn, err = dialPipe(*namedPipe, *poll)
+	} else if *gpgFile != "" {
 		if *verbose {
-			log.Println("Opening an Assuan connection via", args[0])
+			log.Println("Opening an Assuan connection via", *gpgFile)
 		}
 
-		conn, err = dialAssuan(args[0], *poll)
+		conn, err = dialAssuan(*gpgFile, *poll)
+	} else {
+		log.Fatalln("No action specified!")
+		flag.Usage()
+		os.Exit(1)
 	}
 
 	if err != nil {
