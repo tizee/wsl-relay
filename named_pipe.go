@@ -17,7 +17,7 @@ func dialPipe(p string, poll bool) (*overlappedFile, error) {
 		if err == nil {
 			return newOverlappedFile(h), nil
 		}
-		if poll && os.IsNotExist(err) {
+		if poll && (os.IsNotExist(err) || err == windows.ERROR_PIPE_BUSY) {
 			time.Sleep(pollTimeout)
 			continue
 		}
