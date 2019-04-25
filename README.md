@@ -1,21 +1,15 @@
-# npiperelay
+# WSL-Relay
 
-npiperelay is a tool that allows you to access a Windows named pipe in a way
-that is more compatible with a variety of command-line tools. With it, you can
-use Windows named pipes from the Windows Subsystem for Linux (WSL).
+wsl-relay is a fork of
+[jstarks/npiperelay](https://github.com/jstarks/npiperelay) designed to make
+my life easier when working with WSL.
 
-For example, you can:
-
-* Connect to Docker for Windows from the Linux Docker client in WSL
-* Connect to MySQL Server running as a Windows service
-* Connect interactively to a Hyper-V Linux VM's serial console
-* Use gdb to connect to debug the kernel of a Hyper-V Linux VM
-
-Let me know on Twitter ([@gigastarks](https://twitter.com/gigastarks)) if you come up with more interesting uses.
+Essentially it links its stdin and stdout with things running in Windows
+(Docker, MySQL, GPG) that you otherwise wouldn't be able to talk to.
 
 # Installation
 
-Binaries for npiperelay are not currently available. You have to build from source. With Go, this is not too difficult.
+Binaries for wsl-relay are not currently available. You have to build from source. With Go, this is not too difficult.
 
 Basic steps:
 
@@ -27,13 +21,13 @@ Basic steps:
 
 To build the binary, you will need a version of [Go](https://golang.org). You can use a Windows build of Go or, as outlined here, you can use a Linux build and cross-compile the Windows binary directly from WSL.
 
-## Building npiperelay.exe
+## Building wsl-relay.exe
 
 Once you have Go installed (and your GOPATH configured), you need to download and install the tool. This is a little tricky because we are building the tool for Windows from WSL:
 
 ```bash
-$ go get -d github.com/jstarks/npiperelay
-$ GOOS=windows go build -o /mnt/c/Users/<myuser>/go/bin/npiperelay.exe github.com/jstarks/npiperelay
+$ go get -d github.com/lexicality/wsl-relay
+$ GOOS=windows go build -o /mnt/c/Users/<myuser>/go/bin/wsl-relay.exe github.com/lexicality/wsl-relay
 ```
 
 In this example, we have put the binary in `/mnt/c/Users/<myuser>/go/bin`. We then need to make sure that this directory is available in the WSL path. This can be achieved either by adding C:\Users\<myuser>\go\bin to the Win32 path and restarting WSL, or by just adding the path directly in WSL via the command line or in our `.bash_profile` or `.bashrc`.
@@ -41,7 +35,7 @@ In this example, we have put the binary in `/mnt/c/Users/<myuser>/go/bin`. We th
 Or you can just symlink it into something that's already in your path:
 
 ```bash
-$ sudo ln -s /mnt/c/Users/<myuser>/go/bin/npiperelay.exe /usr/local/bin/npiperelay.exe
+$ sudo ln -s /mnt/c/Users/<myuser>/go/bin/wsl-relay.exe /usr/local/bin/wsl-relay.exe
 ```
 
 You may be tempted to just put the real binary directly into `/usr/local/bin`, but this will not work because Windows currently cannot run binaries that exist in the Linux namespace -- they have to reside somewhere under the Windows portion of the file system.
@@ -59,7 +53,7 @@ or the equivalent.
 
 # Usage
 
-The examples below assume you have copied the contents of the `scripts` directory (from `$HOME/go/src/github.com/jstarks/npiperelay/scripts`) into your PATH somewhere. These scripts are just examples and can be modified to suit your needs.
+The examples below assume you have copied the contents of the `scripts` directory (from `$HOME/go/src/github.com/lexicality/wsl-relay/scripts`) into your PATH somewhere. These scripts are just examples and can be modified to suit your needs.
 
 ## Connecting to Docker from WSL
 
@@ -121,7 +115,7 @@ Before creating the relay, it will try to configure your environment
 * creating a `mysql` group, and
 * adding your user account to the `mysql` group.
 
-You can of course pull out just the npiperelay command if you don't
+You can of course pull out just the wsl-relay command if you don't
 need any of the above checks.
 
 Note that if you need to enter a password for sudo, the following
@@ -148,14 +142,14 @@ Linux process that expects to talk to MySQL Server through
 ## Connecting to a Hyper-V Linux VM's serial console
 
 If you have a Linux VM configured in Hyper-V, you may wish to use its serial
-port as a serial console. With npiperelay, this can be done fairly easily from
+port as a serial console. With wsl-relay, this can be done fairly easily from
 the command line.
 
 Basic steps:
 
 1. Enable the serial port for your Linux VM.
 2. Configure your VM to run the console on the serial port.
-3. Run socat to relay between your terminal and npiperelay.
+3. Run socat to relay between your terminal and wsl-relay.
 
 ### Enabling the serial port
 
@@ -221,4 +215,4 @@ target remote /home/<myuser>/foo-pty
 
 ## Custom usage
 
-Take a look at the scripts for sample usage, or run `npiperelay.exe` without any parameters for parameter documentation.
+Take a look at the scripts for sample usage, or run `wsl-relay.exe` without any parameters for parameter documentation.
