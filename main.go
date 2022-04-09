@@ -52,11 +52,11 @@ func main() {
 	} else if *gpgFile != "" {
 		fileName := *gpgFile
 		if !filepath.IsAbs(fileName) {
-			appdata, ok := os.LookupEnv("APPDATA")
+			localAppData, ok := os.LookupEnv("LOCALAPPDATA")
 			if !ok {
-				log.Fatal("Missing the %APPDATA% variable?")
+				log.Fatal("Missing the %LOCALAPPDATA% variable?")
 			}
-			gpgDir := filepath.Join(appdata, "gnupg")
+			gpgDir := filepath.Join(localAppData, "gnupg")
 			_, err := os.Stat(gpgDir)
 			if os.IsNotExist(err) {
 				log.Fatalf("The directory %q doesn't exist, please specify your full GPG path", gpgDir)
