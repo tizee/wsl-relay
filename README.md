@@ -26,8 +26,8 @@ To build the binary, you will need a version of [Go](https://golang.org). You ca
 Once you have Go installed (and your GOPATH configured), you need to download and install the tool. This is a little tricky because we are building the tool for Windows from WSL:
 
 ```bash
-$ go get -d github.com/lexicality/wsl-relay
-$ GOOS=windows go build -o /mnt/c/Users/<myuser>/go/bin/wsl-relay.exe github.com/lexicality/wsl-relay
+$ git clone git@github.com/tizee/wsl-relay.git
+$ GOOS=windows go build -o /mnt/c/Users/<myuser>/go/bin/wsl-relay.exe github.com/tizee/wsl-relay
 ```
 
 In this example, we have put the binary in `/mnt/c/Users/<myuser>/go/bin`. We then need to make sure that this directory is available in the WSL path. This can be achieved either by adding C:\Users\<myuser>\go\bin to the Win32 path and restarting WSL, or by just adding the path directly in WSL via the command line or in our `.bash_profile` or `.bashrc`.
